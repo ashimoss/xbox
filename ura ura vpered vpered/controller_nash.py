@@ -69,13 +69,13 @@ def on_right_stick_pressed(button):
 # --- Обработчик крестовины ---
 def on_dpad_moved(axis):
     if axis.x > 0.5:
-        print("▶ Стрелка вправо")
+        print(f'▶ Стрелка вправо: {axis.x:.2f}')
     elif axis.x < -0.5:
-        print("◀ Стрелка влево")
+        print(f'◀ Стрелка влево: {axis.x:.2f}')
     elif axis.y > 0.5:
-        print("▲ Стрелка вверх")
+        print(f'▲ Стрелка вверх: {axis.y:.2f}')
     elif axis.y < -0.5:
-        print("▼ Стрелка вниз")
+        print(f'▼ Стрелка вниз: {axis.y:.2f}')
     elif axis.x == 0 and axis.y == 0:
         print("[DPAD] Нейтрально")
 

@@ -26,6 +26,7 @@ except Exception as e:
     print(f"Ошибка инициализации робота: {e}")
 
 
+
 # def free_port(api) -> None:
 #     """
 #     Освобождает порт, *не отключая* питание робота:
@@ -45,189 +46,151 @@ except Exception as e:
 #             api.socket = None  # важно для повторной инициализации
 
 def controller_handler(rr):
-    print('=====================================================+++++++++')
     def getActPose_deg(rr):
-        print('=====================================================')
         act_q = list(rr.ctrl.data["act_q"])
         # print('act_q =', act_q)
         for i in range(6):
             act_q[i] = math.degrees(act_q[i])
-        print('------------------------ help')
-        print(act_q)
+        # print(act_q)
         return act_q
-
-    # # ПЕРВОЕ ЗВЕНО
-    # def on_button_pressed_A(button):
-    #     act_q = getActPose_deg(rr)
-    #     print(f'Первое звено: {act_q[0]}')
-
-    # # ВТОРОЕ ЗВЕНО
-    # def on_button_pressed_B(button):
-    #     act_q = getActPose_deg(rr)
-    #     print(f'Второе звено: {act_q[1]}')
-
-# # ПЕРВОЕ ЗВЕНО
-#     def on_button_pressed_X(button): # функция кнопки Х из файла test_1
+            
+#  # ВТОРОЕ ЗВЕНО
+#     def on_button_pressed_Y(button):
 #         with Xbox360Controller() as controller:
-#             controller.set_rumble(1, 0, 1000)
+#             on_button_Y()
 
-#             on_button_X() # функция перемещения которую мы вписали в функцию кнопки, то есть по факту получается функция в функции,
-#             # то есть мы будем брать все функции из test_1 записывать их инициализацию в try
-#             # КОМАНДЫ ДЛЯ РОБОТА СМОТРЕТЬ В n1
-
-
-
-#     def on_button_X():
+#     def on_button_Y():
 #         act_q = getActPose_deg(rr)
-#                   # функция создает точку в которую нужно перместиться (для первого звена)
-#         rr.add_wp(des_q=[math.radians(act_q[0]+10), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+#         rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]+90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
 #         rr.run_wps() #движение
+#         print(f'Второе звено переместилось: {act_q[1]}')
+
+#     def on_button_released_Y(button):
+#         with Xbox360Controller() as controller:
+#             off_button_Y()
+            
+#     def off_button_Y():
+#         rr.hold()
 #         rr.await_motion()
-#         print(f'Первое звено переместилось: {act_q[0]}')
-
-
-            
- # ВТОРОЕ ЗВЕНО
-    def on_button_pressed_Y(button):
-        with Xbox360Controller() as controller:
-            on_button_Y()
-
-    def on_button_Y():
-        act_q = getActPose_deg(rr)
-        rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]+90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-        rr.run_wps() #движение
-        print(f'Второе звено переместилось: {act_q[1]}')
-
-    def on_button_released_Y(button):
-        with Xbox360Controller() as controller:
-            off_button_Y()
-            
-    def off_button_Y():
-        rr.hold()
-        rr.await_motion()
 
 
 
 # ПЕРВОЕ ЗВЕНО
-
-    def on_left_stick_moved_1(axis):
+    def on_left_stick_moved(axis):
         global moved
-        print(f'[ЛЕВЫЙ СТИК] X:{axis.x:.2f} Y:{axis.y:.2f}')
+        # print(f'[ЛЕВЫЙ СТИК] X:{axis.x:.2f} Y:{axis.y:.2f}')
+        with Xbox360Controller() as controller:
+            if axis.x >= 0.4 and axis.x <=1:
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]+45), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    #print(f'Первое звено переместилось: {act_q[0]:.1f}')
+                    moved=1
+            elif axis.x < -0.4 and axis.x >=-1:
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]-45), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    #print(f'Первое звено переместилось: {act_q[0]:.1f}')
+                    moved=1           
+# ВТОРОЕ ЗВЕНО                    
+            elif axis.y >= 0.4 and axis.y <=1:
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]+45), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    #print(f'Второе звено переместилось: {act_q[1]:.1f}')
+                    moved=1
+                    
+            elif axis.y < -0.4 and axis.y >=-1:
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]-45), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    #print(f'Второе звено переместилось: {act_q[1]:.1f}')
+                    moved=1
+            else:
+                moved=0
+                rr.hold()
+                rr.await_motion()
+
+# ТРЕТЬЕ ЗВЕНО
+    def on_dpad_moved(axis):
+        global moved
+        with Xbox360Controller() as controller:
+            if axis.x > 0.5: # "▶ Стрелка вправо"
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]+20), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    print(f'Третье звено переместилось: {act_q[2]:.1f}')
+                    moved=1
+            elif axis.x < -0.5: # "◀ Стрелка влево"
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]-20), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    print(f'Третье звено переместилось: {act_q[2]:.1f}')
+                    moved=1
+# ЧЕТВЕРТОЕ ЗВЕНО
+            elif axis.y > 0.5: # "▲ Стрелка вверх"
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]+20), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    print(f'Четвертое звено переместилось: {act_q[3]:.1f}')
+                    moved=1
+            elif axis.y < -0.5: # "▼ Стрелка вниз"
+                if moved==0:
+                    act_q = getActPose_deg(rr)
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]-20), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.run_wps() #движение
+                    print(f'Четвертое звено переместилось: {act_q[3]:.1f}')
+                    moved=1
+            else:
+                moved=0
+                rr.hold()
+                rr.await_motion()
+
+# ПЯТОЕ ЗВЕНО
+    def on_right_stick_moved(axis):
+        global moved
         with Xbox360Controller() as controller:
             if axis.x > 0.5 and axis.x <=1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]+90), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]+45), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    print(f'Первое звено переместилось: {act_q[0]}')
+                    #print(f'Пятое звено переместилось: {act_q[4]:.1f}')
                     moved=1
             elif axis.x < -0.5 and axis.x >=-1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]+90), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]-45), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    print(f'Первое звено переместилось: {act_q[0]}')
+                    #print(f'Пятое звено переместилось: {act_q[4]:.1f}')
                     moved=1
-                    
+# ШЕСТОЕ ЗВЕНО                       
             elif axis.y > 0.5 and axis.y <=1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]+90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5]+45)], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    print(f'Первое звено переместилось: {act_q[1]}')
-                    moved=1
-
-            elif axis.y < -0.5 and axis.y >=-1:
-                if moved==0:
-                    act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]-90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-                    rr.run_wps() #движение
-                    print(f'Первое звено переместилось: {act_q[1]}')
-                    moved=1
-            else:
-                moved=0
-                rr.hold()
-                rr.await_motion()
-
-
-
-# ТРЕТЬЕ ЗВЕНО
-
-
-    def on_left_stick_moved_2(axis):
-        global moved
-        print(f'[ЛЕВЫЙ СТИК] X:{axis.x:.2f} Y:{axis.y:.2f}')
-        with Xbox360Controller() as controller:
-            if axis.y > 0.5 and axis.y <=1:
-                if moved==0:
-                    act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]+90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-                    rr.run_wps() #движение
-                    print(f'Третье звено переместилось: {act_q[2]}')
+                    #print(f'Шестое звено переместилось: {act_q[5]:.1f}')
                     moved=1
                     
             elif axis.y < -0.5 and axis.y >=-1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
-                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]-90), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
+                    rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5]-45)], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    print(f'Третье звено переместилось: {act_q[2]}')
+                    #print(f'Шестое звено переместилось: {act_q[5]:.1f}')
                     moved=1
             else:
                 moved=0
                 rr.hold()
                 rr.await_motion()
-
-#     def on_button_pressed_B(button):
-#         with Xbox360Controller() as controller:
-
-#             on_button_B()
-
-#     def on_button_B():
-#         act_q = getActPose_deg(rr)
-#         rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]+10), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-#         rr.run_wps() #движение
-#         rr.await_motion()
-#         print(f'Третье звено переместилось: {act_q[2]}')
-
-# # ЧЕТВЕРТОЕ ЗВЕНО
-#     def on_button_pressed_A(button):
-#         with Xbox360Controller() as controller:
-
-#             on_button_A()
-
-#     def on_button_A():
-#         act_q = getActPose_deg(rr)
-#         rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]+10), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-#         rr.run_wps() #движение
-#         rr.await_motion()
-#         print(f'Четвертое звено преместилось: {act_q[3]}')
-
-# # ПЯТОЕ ЗВЕНО
-#     def on_lb_pressed(button): 
-#         with Xbox360Controller() as controller:
-    
-#             on_left_bumper() 
-        
-#     def on_left_bumper():
-#         act_q = getActPose_deg(rr)
-#         rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]+10), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-#         rr.run_wps() #движение
-#         rr.await_motion()
-#         print(f'Пятое звено преместилось: {act_q[4]}')
-
-# # ШЕСТОЕ ЗВЕНО
-#     def on_rb_pressed(button): 
-#         with Xbox360Controller() as controller:
-    
-#             on_right_bumper() 
-        
-#     def on_right_bumper():
-#         act_q = getActPose_deg(rr)
-#         rr.add_wp(des_q=[math.radians(act_q[0]), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5]+10)], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
-#         rr.run_wps() #движение
-#         rr.await_motion()
-#         print(f'Шестое звено преместилось: {act_q[5]}')
 
 # ОТКРЫТИЕ И ЗАКРЫТИЕ СХВАТА
 
@@ -294,13 +257,10 @@ def controller_handler(rr):
             #controller.button_a.when_pressed = on_button_pressed_A
             #controller.button_b.when_pressed = on_button_pressed_B
             #controller.button_x.when_pressed = on_button_pressed_X
-            controller.button_y.when_pressed = on_button_pressed_Y
-            controller.button_y.when_released = on_button_released_Y
+            # controller.button_y.when_pressed = on_button_pressed_Y
+            # controller.button_y.when_released = on_button_released_Y
 
-            #controller.button_trigger_l.when_pressed = on_lb_pressed
-            #controller.button_trigger_r.when_pressed = on_rb_pressed
-
-             # Триггеры
+            # Триггеры
             controller.trigger_l.when_moved = on_lt_moved
             controller.trigger_r.when_moved = on_rt_moved
 
@@ -313,9 +273,11 @@ def controller_handler(rr):
             controller.button_select.when_pressed = on_back_pressed
 
              # Стики (движение)
-            controller.axis_l.when_moved = on_left_stick_moved_1
-#            controller.axis_l.when_moved = on_left_stick_moved_2
-            #controller.axis_r.when_moved = on_right_stick_moved
+            controller.axis_l.when_moved = on_left_stick_moved
+            controller.axis_r.when_moved = on_right_stick_moved
+
+            # Крестовина (движение)
+            controller.hat.when_moved = on_dpad_moved
 
             signal.pause()
 
