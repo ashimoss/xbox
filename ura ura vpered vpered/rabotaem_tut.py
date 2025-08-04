@@ -7,10 +7,12 @@ import signal
 import runpy
 import socket
 
-
-speed = 1
+global speed
+speed = 0.5
 acceleration = 0.9
 moved = 0
+lt_pressed = False
+rt_pressed = False
 # Инициализация робота
 addr = "localhost"
 if len(sys.argv) > 1:
@@ -21,7 +23,7 @@ try:
     rr.init_robot()
     rr.hold()
     rr.await_motion()
-    print("Робот инициализирован и готов к управлению")
+    print(f"Робот инициализирован")
 except Exception as e:
     print(f"Ошибка инициализации робота: {e}")
 
@@ -85,16 +87,16 @@ def controller_handler(rr):
                     act_q = getActPose_deg(rr)
                     rr.add_wp(des_q=[math.radians(act_q[0]+45), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    #print(f'Первое звено переместилось: {act_q[0]:.1f}')
+                    print(f'Первое звено переместилось: {act_q[0]:.1f}')
                     moved=1
             elif axis.x < -0.4 and axis.x >=-1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
                     rr.add_wp(des_q=[math.radians(act_q[0]-45), math.radians(act_q[1]), math.radians(act_q[2]), math.radians(act_q[3]), math.radians(act_q[4]), math.radians(act_q[5])], vmax_j=speed, amax_j=acceleration, rblend=0.7) # правильная команда
                     rr.run_wps() #движение
-                    #print(f'Первое звено переместилось: {act_q[0]:.1f}')
+                    print(f'Первое звено переместилось: {act_q[0]:.1f}')
                     moved=1           
-# ВТОРОЕ ЗВЕНО                    
+    # ВТОРОЕ ЗВЕНО                    
             elif axis.y >= 0.4 and axis.y <=1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
@@ -133,7 +135,7 @@ def controller_handler(rr):
                     rr.run_wps() #движение
                     print(f'Третье звено переместилось: {act_q[2]:.1f}')
                     moved=1
-# ЧЕТВЕРТОЕ ЗВЕНО
+    # ЧЕТВЕРТОЕ ЗВЕНО
             elif axis.y > 0.5: # "▲ Стрелка вверх"
                 if moved==0:
                     act_q = getActPose_deg(rr)
@@ -171,7 +173,7 @@ def controller_handler(rr):
                     rr.run_wps() #движение
                     #print(f'Пятое звено переместилось: {act_q[4]:.1f}')
                     moved=1
-# ШЕСТОЕ ЗВЕНО                       
+    # ШЕСТОЕ ЗВЕНО                       
             elif axis.y > 0.5 and axis.y <=1:
                 if moved==0:
                     act_q = getActPose_deg(rr)
@@ -195,23 +197,29 @@ def controller_handler(rr):
 # ОТКРЫТИЕ И ЗАКРЫТИЕ СХВАТА
 
     def on_lt_moved(trigger):
-        with Xbox360Controller() as controller:
-            print(trigger.value)
-            if trigger.value > 0.5:
-                rr.write_dig_output(8, 1)
-                print('Открытие: выход вкл')
-            else:
-                rr.write_dig_output(8, 0)
-                print('Открытие: выход выкл')
+        global lt_pressed
+        if trigger.value > 0.5 and not lt_pressed:
+            lt_pressed = True
+            rr.write_dig_output(9, 0)
+            print('Закрытие: выход выкл')
+            rr.write_dig_output(8, 1)
+            print('Открытие: выход вкл')
+        elif trigger.value <= 0.5 and lt_pressed:
+            lt_pressed = False
+            print('LT отпущен')
 
     def on_rt_moved(trigger):
-        with Xbox360Controller() as controller:
-            if trigger.value > 0.5:
-                rr.write_dig_output(9, 1)
-                print('Закрытие: выход вкл')
-            else:
-                rr.write_dig_output(9, 0)
-                print('Закрытие: выход выкл')
+        global rt_pressed
+        if trigger.value > 0.5 and not rt_pressed:
+            rt_pressed = True
+            rr.write_dig_output(8, 0)
+            print('Открытие: выход выкл')
+            rr.write_dig_output(9, 1)
+            print('Закрытие: выход вкл')
+        elif trigger.value <= 0.5 and rt_pressed:
+            rt_pressed = False
+            print('RT отпущен')
+                
 
     # ВКЛЮЧЕНИЕ ZERO GRAVITY
     def on_right_stick_pressed(button):
@@ -240,12 +248,30 @@ def controller_handler(rr):
 
     def on_back_pressed (button):
         with Xbox360Controller() as controller:
-           on_button_back()
+            on_button_back()
 
     def on_button_back():
         rr.off()
         rr._disconnect()
         print(f'Робот уснул')
+
+    # ИЗМЕНЕНИЕ СКОРОСТИ
+    def on_button_pressed_B(button):
+        on_button_B()
+
+    def on_button_B():
+        global speed
+        speed = speed + 0.1
+        print(f"Скорость увеличена: {speed*100:.0f}%")
+    
+    def on_button_pressed_X(button):
+        on_button_X()
+
+    def on_button_X():
+        global speed
+        speed = speed - 0.1
+        print(f"Скорость уменьшена: {speed*100:.0f}%")
+
 
     try:
         with Xbox360Controller(0, axis_threshold=0.2) as controller:
@@ -255,8 +281,8 @@ def controller_handler(rr):
 
             # Назначение обработчиков кнопок
             #controller.button_a.when_pressed = on_button_pressed_A
-            #controller.button_b.when_pressed = on_button_pressed_B
-            #controller.button_x.when_pressed = on_button_pressed_X
+            controller.button_b.when_pressed = on_button_pressed_B
+            controller.button_x.when_pressed = on_button_pressed_X
             # controller.button_y.when_pressed = on_button_pressed_Y
             # controller.button_y.when_released = on_button_released_Y
 
@@ -295,4 +321,4 @@ def controller_handler(rr):
         print("Добби свободен")
 
 if __name__ == "__main__":
-    controller_handler(rr)
+    controller_handler(rr)       
